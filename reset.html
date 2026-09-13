@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>캐시 초기화</title>
+<style>
+ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#12233D;
+   color:#fff;margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+ .box{max-width:420px;width:100%}
+ h1{font-size:20px;margin:0 0 14px}
+ pre{background:rgba(255,255,255,.08);padding:14px;border-radius:10px;font-size:13px;
+   line-height:1.6;white-space:pre-wrap;margin:0 0 18px}
+ a{display:block;text-align:center;background:#fff;color:#12233D;text-decoration:none;
+   padding:14px;border-radius:11px;font-weight:600}
+</style>
+</head>
+<body>
+<div class="box">
+  <h1>서비스 워커 · 캐시 초기화</h1>
+  <pre id="log">시작하는 중…</pre>
+  <a href="./index.html">앱으로 돌아가기</a>
+</div>
+<script>
+const log = document.getElementById("log");
+const say = m => { log.textContent += "\n" + m; };
+(async () => {
+  log.textContent = "시작";
+  try {
+    if ("serviceWorker" in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      say("서비스 워커 " + regs.length + "개 발견");
+      for (const r of regs) { await r.unregister(); }
+      say("서비스 워커 해제 완료");
+    } else { say("이 브라우저엔 서비스 워커 없음"); }
+
+    if (window.caches) {
+      const keys = await caches.keys();
+      say("캐시 " + keys.length + "개 발견");
+      for (const k of keys) { await caches.delete(k); }
+      say("캐시 삭제 완료");
+    }
+    say("");
+    say("끝났어. 아래 버튼으로 앱에 들어가서 배지를 확인해.");
+    say("일정 데이터는 그대로 남아 있어.");
+  } catch (e) {
+    say("오류: " + e.message);
+  }
+})();
+</script>
+</body>
+</html>
