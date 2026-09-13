@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>İstanbul · Sep 14–19</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="theme-color" content="#12233D">
+<style>
+  :root{
+    --ink:#12233D; --ink-2:#5A7189; --glaze:#E9EEF2; --card:#FFFFFF;
+    --cobalt:#1F4B99; --turq:#1B857F; --tile:#C0392E; --line:#D6DEE6; --rail:#C4D0DB;
+  }
+  html,body{margin:0;padding:0;background:var(--glaze)}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  #app{max-width:520px;margin:0 auto;background:var(--glaze);color:var(--ink);font-size:15px;
+    line-height:1.45;position:relative;border-radius:14px;overflow:hidden;
+    padding-bottom:env(safe-area-inset-bottom)}
+  #app button{font:inherit;color:inherit;cursor:pointer}
+  #app :focus-visible{outline:2px solid var(--cobalt);outline-offset:2px;border-radius:6px}
+
+  .hd{background:var(--ink);color:#fff;padding:18px 18px 0;position:relative}
+  .hd h1{margin:0;font-size:26px;font-weight:700;letter-spacing:-.02em}
+  .hd .sub{margin:3px 0 14px;font-size:13px;color:#9FB4CC;font-variant-numeric:tabular-nums;
+    height:19px;display:flex;align-items:center;gap:9px}
+  .pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;
+    padding:2px 8px;border-radius:20px;background:rgba(255,255,255,.12);color:#9FB4CC}
+  .pill s{width:6px;height:6px;border-radius:50%;background:#8FA3B8;text-decoration:none}
+  .pill.live{background:rgba(46,180,140,.18);color:#7FE0BA}
+  .pill.live s{background:#3FD39B}
+  .pill.off{background:rgba(226,160,60,.16);color:#F0C070}
+  .pill.off s{background:#F0A93C}
+  .pill.err{background:rgba(200,70,60,.18);color:#F0A49C}
+  .pill.err s{background:#E06256}
+  .tile{height:12px;background-repeat:repeat-x;background-size:24px 12px;opacity:.55;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='12'><path d='M12 0 L24 6 L12 12 L0 6 Z' fill='none' stroke='%234F86C6' stroke-width='1.2'/></svg>")}
+  .menu{position:absolute;top:16px;right:12px;background:transparent;border:0;color:#9FB4CC;
+    font-size:20px;padding:6px 10px;border-radius:8px}
+
+  .tabs{display:flex;gap:6px;overflow-x:auto;padding:10px 12px 12px;background:var(--ink);scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{flex:0 0 auto;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.10);
+    color:#DCE7F2;border-radius:10px;padding:7px 12px;font-size:12.5px;font-weight:500;
+    display:flex;gap:6px;align-items:center;height:36px}
+  .tab b{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;color:#fff}
+  .tab[aria-selected="true"]{background:#fff;color:var(--ink);border-color:#fff;font-weight:600;
+    box-shadow:0 2px 10px rgba(0,0,0,.25)}
+  .tab[aria-selected="true"] b{color:var(--cobalt)}
+  .tab .dot{width:5px;height:5px;border-radius:50%;background:var(--tile)}
+
+  .dayhd{padding:14px 18px 10px;display:flex;align-items:center;justify-content:space-between;gap:12px;height:68px}
+  .dayhd h2{margin:0;font-size:18px;font-weight:700;letter-spacing:-.01em;white-space:nowrap}
+  .dayhd .meta{font-size:12.5px;color:var(--ink-2);margin-top:2px;font-variant-numeric:tabular-nums;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sortbtn{border:1px solid var(--line);background:var(--card);border-radius:9px;padding:7px 11px;
+    font-size:12.5px;color:var(--ink-2);white-space:nowrap;flex:0 0 auto}
+  .bar{height:3px;background:var(--rail);margin:0 18px;border-radius:2px;overflow:hidden}
+  .bar i{display:block;height:100%;background:var(--turq);transition:width .25s}
+
+  .list{padding:14px 14px 18px;height:56vh;min-height:330px;overflow-y:auto;
+    overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+  .row{display:flex;gap:8px;align-items:stretch}
+  .when{flex:0 0 68px;padding-top:16px;text-align:right;font-size:12.5px;font-weight:600;
+    color:var(--cobalt);font-variant-numeric:tabular-nums;white-space:nowrap;letter-spacing:-.02em}
+  .when.none{color:#9BABBC;font-weight:500}
+  .railwrap{flex:0 0 38px;position:relative;display:flex;justify-content:center}
+  .railwrap::before{content:"";position:absolute;top:0;bottom:0;width:1.5px;background:var(--rail)}
+  .row:first-child .railwrap::before{top:22px}
+  .row:last-child .railwrap::before{bottom:calc(100% - 22px)}
+  .knob{position:absolute;top:5px;width:38px;height:34px;display:flex;align-items:center;
+    justify-content:center;background:transparent;border:0;padding:0;z-index:1}
+  .knob i{display:block;width:22px;height:22px;border-radius:7px;background:#fff;
+    border:2px solid #A9BCCE;position:relative;transition:background .12s,border-color .12s}
+  .knob:active i{transform:scale(.92)}
+  .knob.done i{background:var(--turq);border-color:var(--turq)}
+  .knob.done i::after{content:"";position:absolute;left:6px;top:2px;width:5px;height:10px;
+    border:solid #fff;border-width:0 2.5px 2.5px 0;transform:rotate(45deg)}
+  .card{flex:1;min-width:0;background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:11px 12px;margin-bottom:9px;text-align:left;width:100%;display:block}
+  .card .t{font-size:15px;font-weight:600;letter-spacing:-.01em;word-break:break-word}
+  .card .p{font-size:13px;color:var(--cobalt);margin-top:3px;word-break:break-word}
+  .card .n{font-size:13px;color:var(--ink-2);margin-top:4px;white-space:pre-wrap;word-break:break-word}
+  .done .card{background:#F1F6F5;border-color:#CFE4E1}
+  .done .card .t{text-decoration:line-through;color:#7C9B97}
+  .done .card .p,.done .card .n{color:#9BABBC}
+  .fresh{animation:pop .9s ease}
+  @keyframes pop{0%{background:#E4F2EE;border-color:#9FD3C8}100%{}}
+
+  .now{display:flex;align-items:center;gap:8px;margin:2px 0 10px 106px;color:var(--tile);
+    font-size:11.5px;font-weight:700;font-variant-numeric:tabular-nums}
+  .now::after{content:"";flex:1;height:1.5px;background:var(--tile);opacity:.45}
+  .empty{margin:8px 0 0;padding:22px 16px;border:1.5px dashed var(--rail);border-radius:12px;
+    text-align:center;color:var(--ink-2);font-size:13.5px}
+  .add{display:block;width:calc(100% - 28px);margin:0 14px 16px;padding:13px;border-radius:12px;
+    border:1.5px dashed var(--rail);background:transparent;color:var(--cobalt);font-weight:600;font-size:14px}
+
+  .scrim{position:fixed;inset:0;background:rgba(18,35,61,.42);opacity:0;pointer-events:none;
+    transition:opacity .2s;z-index:40}
+  .scrim.on{opacity:1;pointer-events:auto}
+  .sheet{position:fixed;left:0;right:0;bottom:0;z-index:50;max-width:520px;margin:0 auto;
+    background:var(--card);border-radius:18px 18px 0 0;
+    padding:16px 18px calc(22px + env(safe-area-inset-bottom));
+    transform:translateY(102%);transition:transform .24s cubic-bezier(.32,.72,0,1);
+    max-height:90vh;overflow-y:auto;box-shadow:0 -10px 40px rgba(18,35,61,.2)}
+  .sheet.on{transform:translateY(0)}
+  .sheet h3{margin:2px 0 14px;font-size:17px;font-weight:700}
+  .fld{margin-bottom:12px}
+  .fld label{display:block;font-size:12.5px;color:var(--ink-2);margin-bottom:5px;font-weight:500}
+  .fld input,.fld textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px;
+    font:inherit;font-size:16px;background:#FBFCFD;color:var(--ink)}
+  .fld textarea{min-height:74px;resize:vertical;line-height:1.5}
+  .fld input:focus,.fld textarea:focus{outline:none;border-color:var(--cobalt);background:#fff}
+  .chips{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+  .chip{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 10px;
+    font-size:13px;font-weight:600;color:var(--cobalt);font-variant-numeric:tabular-nums}
+  .push{display:flex;gap:9px;align-items:flex-start;background:#F2F6FA;border-radius:10px;
+    padding:11px 12px;margin-top:10px;font-size:13px;color:var(--ink-2);line-height:1.4}
+  .push input{margin:1px 0 0;width:20px;height:20px;accent-color:var(--cobalt);flex:0 0 auto}
+  .push b{color:var(--ink);font-weight:600}
+  .moves{display:flex;gap:6px;margin-bottom:14px}
+  .moves button{flex:1;border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px;
+    font-size:13px;color:var(--ink-2);font-weight:500}
+  .acts{display:flex;gap:8px;margin-top:16px}
+  .btn{flex:1;border:0;border-radius:11px;padding:14px;font-size:15px;font-weight:600}
+  .save{background:var(--cobalt);color:#fff}
+  .ghost{flex:0 0 auto;background:#fff;border:1px solid var(--line);color:var(--ink-2);padding:14px 16px}
+  .del{background:#fff;border:1px solid #EBC6C2;color:var(--tile);flex:0 0 auto;padding:14px 16px}
+
+  .toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,20px);z-index:60;
+    background:var(--ink);color:#fff;border-radius:11px;padding:12px 15px;font-size:13.5px;
+    display:flex;gap:14px;align-items:center;opacity:0;pointer-events:none;transition:all .2s;
+    box-shadow:0 6px 24px rgba(18,35,61,.3);max-width:90vw}
+  .toast.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+  .toast button{background:transparent;border:0;color:#8FC0F0;font-weight:700;font-size:13.5px;padding:0}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="hd">
+    <button class="menu" id="menuBtn" aria-label="Menu">&#8943;</button>
+    <h1>İstanbul</h1>
+    <p class="sub"><span id="hdSub">Sep 14 – 19</span>
+      <span class="pill" id="pill"><s></s><span id="pillTxt">local</span></span></p>
+    <div class="tile"></div>
+  </div>
+  <div class="tabs" id="tabs" role="tablist"></div>
+  <div class="dayhd">
+    <div style="min-width:0">
+      <h2 id="dayTitle">&mdash;</h2>
+      <div class="meta" id="dayMeta"></div>
+    </div>
+    <button class="sortbtn" id="sortBtn">Sort by time</button>
+  </div>
+  <div class="bar"><i id="bar" style="width:0%"></i></div>
+  <div class="list" id="list"></div>
+  <button class="add" id="addBtn">+ Add plan</button>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true">
+  <h3 id="sheetTitle">Edit plan</h3>
+  <div class="fld"><label for="fTitle">What</label>
+    <input id="fTitle" placeholder="e.g. Galata Tower"></div>
+  <div class="fld">
+    <label for="fTime">Time <span style="color:#9BABBC">(leave blank for no set time)</span></label>
+    <input id="fTime" type="time">
+    <div class="chips">
+      <button class="chip" data-shift="-60">&minus;1h</button>
+      <button class="chip" data-shift="-30">&minus;30m</button>
+      <button class="chip" data-shift="-15">&minus;15m</button>
+      <button class="chip" data-shift="15">+15m</button>
+      <button class="chip" data-shift="30">+30m</button>
+      <button class="chip" data-shift="60">+1h</button>
+    </div>
+    <label class="push" for="fPush"><input type="checkbox" id="fPush">
+      <span><b>Shift everything after this</b><br>Later plans on this day move by the same amount.</span></label>
+  </div>
+  <div class="fld"><label for="fPlace">Place &middot; address <span style="color:#9BABBC">(opens in Maps)</span></label>
+    <input id="fPlace" placeholder="e.g. Kemankeş Cd. No:57, Beyoğlu"></div>
+  <div class="fld"><label for="fNote">Notes</label>
+    <textarea id="fNote" placeholder="Booking ref, tram direction, price, anything"></textarea></div>
+  <div class="moves">
+    <button id="mUp">&uarr; Move up</button>
+    <button id="mDown">&darr; Move down</button>
+    <button id="mMap">Open in Maps</button>
+  </div>
+  <div class="acts">
+    <button class="btn ghost" id="cancelBtn">Close</button>
+    <button class="btn del" id="delBtn">Delete</button>
+    <button class="btn save" id="saveBtn">Save</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="toastMsg"></span><button id="toastAct">Undo</button></div>
+
+<script>
+/* ════════════════════════════════════════════════════════════
+   1. 여기에 Firebase 설정을 붙여넣어. (SETUP.md 3단계)
+   비워두면 앱은 그대로 돌아가되 공유 없이 이 기기에만 저장돼.
+   ════════════════════════════════════════════════════════════ */
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyBg2k6UkTvAzPbE2ZOEuK_E2AAyju8LSho",
+  authDomain: "istanbul-a4a89.firebaseapp.com",
+  projectId: "istanbul-a4a89",
+  storageBucket: "istanbul-a4a89.firebasestorage.app",
+  messagingSenderId: "633367620450",
+  appId: "1:633367620450:web:e71dd841a06336a2831a3b",
+  measurementId: "G-535MLDXQ41"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+
+window.TRIP_ID = "istanbul-2026";   // 같이 쓰는 사람 모두 같은 값이어야 함
+</script>
+
+<script>
+const KEY = "istanbul2026:plan:v3";
+const now = () => Date.now();
+const uid = () => Math.random().toString(36).slice(2,10)+now().toString(36).slice(-4);
+let ORD = 0;
+const I = (t,p,n,time) => ({id:uid(), title:t, place:p||"", note:n||"", time:time||"",
+                            done:false, ord:(ORD+=10), ts:0, del:false});
+
+const DEFAULT = [
+ {date:"2026-09-14", dow:"Mon", label:"Arrival", items:[
+   I("Arrive Istanbul / settle into Aloft Karaköy","Aloft Istanbul Karaköy","Keep arrival day easy",""),
+   I("Company Welcome Dinner","Galata Frida House, Istanbul","Walking distance from Aloft","19:00"),
+ ]},
+ {date:"2026-09-15", dow:"Tue", label:"Sister joins", items:[
+   I("Sister arrives at Aloft Karaköy","Aloft Istanbul Karaköy","Flight lands IST ~10:45; timing depends on immigration / traffic","12:30"),
+   I("Lunch around Karaköy","Karaköy Lokantası, Kemankeş Cd. No:57, 34425 Beyoğlu","","13:00"),
+   I("Explore Karaköy + Galata","Kamondo Stairs, Istanbul","Kamondo Stairs for photo\nPublic vintage shop · Serdar-ı Ekrem Cd. No. 16/A\nWalk toward Galata Tower","13:30"),
+   I("Buffer / head to workshop","","Open slot before CoBAC","16:00"),
+   I("CoBAC cooking workshop","CoBAC Workshop Istanbul","","17:00"),
+ ]},
+ {date:"2026-09-16", dow:"Wed", label:"Old city", items:[
+   I("Kılıç Ali Paşa Hamam","Kılıç Ali Paşa Hamamı, Istanbul","Start 8:30 or 9:00","08:30"),
+   I("Lunch","Karaköy Gümrük, Istanbul","","12:00"),
+   I("T1 tram → Sultanahmet","Karaköy Tramvay İstasyonu","Direction: BAĞCILAR\nKaraköy → Eminönü → Sirkeci → Gülhane → Sultanahmet (get off here)","13:00"),
+   I("Basilica Cistern","Basilica Cistern, Istanbul","",""),
+   I("Hagia Sophia","Hagia Sophia, Istanbul","",""),
+   I("Blue Mosque + Sultanahmet Square","Blue Mosque, Istanbul","",""),
+   I("Turkish coffee / tea","Şerbethane, Sultanahmet","",""),
+   I("T1 tram → Karaköy","Sultanahmet Tramvay İstasyonu","Direction: KABATAŞ\nSultanahmet → Gülhane → Sirkeci → Eminönü → Karaköy","16:00"),
+   I("Bryan returns to hotel","","Company transfer returns at 5:30","17:30"),
+   I("Galata Tower","Galata Tower, Istanbul","",""),
+   I("Rooftop drinks","Flinta Cocktail Bar, Istanbul","",""),
+   I("Dinner","AŞEKA Karaköy, Istanbul","",""),
+ ]},
+ {date:"2026-09-17", dow:"Thu", label:"Bazaar · yacht", items:[
+   I("Brunch","Mivan Restaurant & Cafe, Istanbul","","08:30"),
+   I("T1 tram → Beyazıt–Kapalıçarşı","Beyazıt-Kapalıçarşı Tramvay İstasyonu","Direct / easy for Grand Bazaar","08:45"),
+   I("Grand Bazaar","Grand Bazaar, Istanbul","About two hours","09:00"),
+   I("Return to Karaköy","","Don't push departure timing","11:00"),
+   I("Aloft / sister gets luggage","Aloft Istanbul Karaköy","End of sister mini-trip","12:00"),
+   I("Nothing scheduled","","Afternoon left open","14:00"),
+   I("Meet company in Aloft lobby","Aloft Istanbul Karaköy","","18:00"),
+   I("Private Bosphorus yacht + dinner","","6:30–8:30 PM","18:30"),
+ ]},
+ {date:"2026-09-18", dow:"Fri", label:"Free day", items:[
+   I("Slow morning / explore","","Company handout lists this as team free day","09:00"),
+   I("Sightseeing with Bryan","","We'll choose something he missed","11:30"),
+   I("Dinner","Sky Karaköy, Istanbul","","19:00"),
+ ]},
+ {date:"2026-09-19", dow:"Sat", label:"Departure", items:[
+   I("Departure","","Company departure day",""),
+ ]},
+];
+
+let state=null, cur=0, edit=null, undoBuf=null, toastTimer=null, freshIds=new Set();
+
+/* ── 로컬 저장 (항상 동작) ───────────────────────────────── */
+function readLocal(){
+  try{ const raw = localStorage.getItem(KEY); return raw ? JSON.parse(raw) : null; }catch(e){ return null; }
+}
+function writeLocal(){
+  try{ localStorage.setItem(KEY, JSON.stringify(state)); return true; }catch(e){ return false; }
+}
+
+/* ── 병합: 항목 단위 last-write-wins ──────────────────────── */
+function mergeDays(mine, theirs){
+  const out = mine.map(d => ({...d, items: d.items.slice()}));
+  theirs.forEach(rd => {
+    const ld = out.find(x => x.date === rd.date);
+    if(!ld){ out.push(JSON.parse(JSON.stringify(rd))); return; }
+    const map = new Map(ld.items.map(it => [it.id, it]));
+    (rd.items||[]).forEach(rit => {
+      const lit = map.get(rit.id);
+      if(!lit){ map.set(rit.id, rit); freshIds.add(rit.id); }
+      else if((rit.ts||0) > (lit.ts||0)){ map.set(rit.id, rit); freshIds.add(rit.id); }
+    });
+    ld.items = Array.from(map.values());
+  });
+  return out;
+}
+function prune(days){           // 오래된 삭제 흔적 정리
+  const cutoff = now() - 14*24*3600*1000;
+  days.forEach(d => { d.items = d.items.filter(it => !(it.del && (it.ts||0) < cutoff)); });
+  return days;
+}
+
+/* ── 변경 기록 + 저장 + 푸시 ─────────────────────────────── */
+function touch(it){ it.ts = now(); }
+let pushTimer=null;
+function commitState(){
+  writeLocal();
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(()=>{ if(window.__push) window.__push(state.days); }, 400);
+}
+
+/* 원격에서 스냅샷 도착 */
+window.__onRemote = function(remoteDays){
+  if(!remoteDays || !Array.isArray(remoteDays)) return;
+  const before = JSON.stringify(state.days);
+  state.days = prune(mergeDays(state.days, remoteDays));
+  if(JSON.stringify(state.days) !== before){
+    writeLocal(); render();
+    setTimeout(()=>{ freshIds.clear(); }, 1200);
+  }
+};
+window.__status = function(kind, text){
+  const p = document.getElementById("pill");
+  p.className = "pill" + (kind ? " "+kind : "");
+  document.getElementById("pillTxt").textContent = text;
+};
+
+/* ── 헬퍼 ─────────────────────────────────────────────────── */
+const toMin = t => { if(!t) return null; const p=t.split(":").map(Number); return p[0]*60+p[1]; };
+const toStr = n => { n=((n%1440)+1440)%1440; return String(Math.floor(n/60)).padStart(2,"0")+":"+String(n%60).padStart(2,"0"); };
+const fmt = t => { if(!t) return "no time"; const p=t.split(":"); const H=+p[0];
+  return (H%12===0?12:H%12)+(p[1]==="00"?"":":"+p[1])+" "+(H<12?"AM":"PM"); };
+const day = d => state.days[d];
+const visible = d => d.items.filter(it=>!it.del).sort((a,b)=>(a.ord||0)-(b.ord||0));
+const today = () => { const n=new Date(); return n.getFullYear()+"-"+String(n.getMonth()+1).padStart(2,"0")+"-"+String(n.getDate()).padStart(2,"0"); };
+const nowMin = () => { const n=new Date(); return n.getHours()*60+n.getMinutes(); };
+const MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const mdOf = iso => { const p=iso.split("-"); return MON[+p[1]-1]+" "+ +p[2]; };
+const FULL={Mon:"Monday",Tue:"Tuesday",Wed:"Wednesday",Thu:"Thursday",Fri:"Friday",Sat:"Saturday",Sun:"Sunday"};
+
+/* ── 렌더 ─────────────────────────────────────────────────── */
+function render(){
+  const tabs=document.getElementById("tabs"), list=document.getElementById("list");
+  const keepTab=tabs.scrollLeft, keepList=list.scrollTop;
+  tabs.innerHTML="";
+  state.days.forEach((d,i)=>{
+    const items=visible(d), done=items.filter(x=>x.done).length;
+    const b=document.createElement("button");
+    b.className="tab"; b.setAttribute("role","tab");
+    b.setAttribute("aria-selected", i===cur?"true":"false");
+    b.innerHTML="<span>"+d.dow+"</span><b>"+(+d.date.split("-")[2])+"</b>"+
+      (d.date===today()?'<span class="dot"></span>'
+        :(items.length&&done===items.length?'<span style="font-size:11px">&check;</span>':''));
+    b.onclick=()=>{cur=i;render();list.scrollTop=0;};
+    tabs.appendChild(b);
+  });
+
+  const d=day(cur), items=visible(d), done=items.filter(x=>x.done).length;
+  document.getElementById("dayTitle").textContent=FULL[d.dow]+", "+mdOf(d.date);
+  document.getElementById("dayMeta").textContent=
+    (d.label?d.label+" · ":"")+(items.length?done+"/"+items.length+" done":"nothing planned");
+  document.getElementById("bar").style.width=items.length?(done/items.length*100)+"%":"0%";
+
+  let trip=0,tdone=0;
+  state.days.forEach(x=>{const v=visible(x); trip+=v.length; tdone+=v.filter(i=>i.done).length;});
+  document.getElementById("hdSub").textContent="Sep 14 – 19 · "+tdone+"/"+trip+" done";
+
+  list.innerHTML="";
+  if(!items.length){
+    list.innerHTML='<div class="empty">This day is empty.<br>Add your first plan below.</div>';
+  }else{
+    const isToday=d.date===today(), nm=nowMin(); let marked=false;
+    items.forEach((it,idx)=>{
+      if(isToday&&!marked&&toMin(it.time)!==null&&toMin(it.time)>nm){
+        const n=document.createElement("div"); n.className="now";
+        n.textContent="now "+toStr(nm); list.appendChild(n); marked=true;
+      }
+      const row=document.createElement("div");
+      row.className="row"+(it.done?" done":"");
+      row.innerHTML=
+        '<div class="when'+(it.time?"":" none")+'">'+fmt(it.time)+'</div>'+
+        '<div class="railwrap"><button class="knob'+(it.done?" done":"")+'" aria-label="Mark done"><i></i></button></div>'+
+        '<button class="card'+(freshIds.has(it.id)?" fresh":"")+'"><div class="t"></div>'+
+        (it.place?'<div class="p"></div>':'')+(it.note?'<div class="n"></div>':'')+'</button>';
+      row.querySelector(".t").textContent=it.title||"(untitled)";
+      if(it.place) row.querySelector(".p").textContent="📍 "+it.place;
+      if(it.note) row.querySelector(".n").textContent=it.note;
+      row.querySelector(".knob").onclick=()=>{ it.done=!it.done; touch(it); commitState(); render(); };
+      row.querySelector(".card").onclick=()=>openSheet(it.id);
+      list.appendChild(row);
+    });
+  }
+  tabs.scrollLeft=keepTab; list.scrollTop=keepList;
+}
+
+/* ── 편집 시트 ────────────────────────────────────────────── */
+const $=id=>document.getElementById(id);
+function find(id){ return day(cur).items.find(x=>x.id===id); }
+function openSheet(id){
+  edit=id;
+  const it=id===null?{title:"",time:"",place:"",note:""}:find(id);
+  $("sheetTitle").textContent=id===null?"Add plan":"Edit plan";
+  $("fTitle").value=it.title; $("fTime").value=it.time;
+  $("fPlace").value=it.place; $("fNote").value=it.note; $("fPush").checked=false;
+  $("delBtn").style.display=id===null?"none":"block";
+  $("mUp").disabled=$("mDown").disabled=(id===null);
+  $("scrim").classList.add("on"); $("sheet").classList.add("on");
+}
+function closeSheet(){ $("scrim").classList.remove("on"); $("sheet").classList.remove("on"); edit=null; }
+
+function commit(){
+  const d=day(cur), t=$("fTitle").value.trim(), newTime=$("fTime").value;
+  if(!t&&!newTime){ closeSheet(); return; }
+  if(edit===null){
+    const list=visible(d);
+    const it=I(t||"New plan",$("fPlace").value.trim(),$("fNote").value.trim(),newTime);
+    it.ord=(list.length?Math.max(...list.map(x=>x.ord||0)):0)+10;
+    touch(it); d.items.push(it);
+  }else{
+    const it=find(edit), oldM=toMin(it.time), newM=toMin(newTime);
+    if($("fPush").checked&&oldM!==null&&newM!==null&&newM!==oldM){
+      const delta=newM-oldM, list=visible(d), i=list.findIndex(x=>x.id===edit);
+      for(let k=i+1;k<list.length;k++){
+        const m=toMin(list[k].time);
+        if(m!==null){ list[k].time=toStr(m+delta); touch(list[k]); }
+      }
+      toast("Later plans moved "+(delta>0?"+":"")+delta+" min",null);
+    }
+    it.title=t||"New plan"; it.time=newTime;
+    it.place=$("fPlace").value.trim(); it.note=$("fNote").value.trim(); touch(it);
+  }
+  commitState(); closeSheet(); render();
+}
+
+function move(dir){
+  const list=visible(day(cur)), i=list.findIndex(x=>x.id===edit), j=i+dir;
+  if(i<0||j<0||j>=list.length) return;
+  const a=list[i].ord, b=list[j].ord;
+  list[i].ord=b; list[j].ord=a; touch(list[i]); touch(list[j]);
+  commitState(); render();
+}
+
+function toast(msg,undo){
+  clearTimeout(toastTimer);
+  $("toastMsg").textContent=msg;
+  $("toastAct").style.display=undo?"block":"none";
+  undoBuf=undo; $("toast").classList.add("on");
+  toastTimer=setTimeout(()=>$("toast").classList.remove("on"),undo?6000:2600);
+}
+
+$("addBtn").onclick=()=>openSheet(null);
+$("cancelBtn").onclick=closeSheet;
+$("scrim").onclick=closeSheet;
+$("saveBtn").onclick=commit;
+$("mUp").onclick=()=>move(-1);
+$("mDown").onclick=()=>move(1);
+$("mMap").onclick=()=>{
+  const q=$("fPlace").value.trim()||$("fTitle").value.trim();
+  if(!q){ toast("Add a place first.",null); return; }
+  window.open("https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(q+" Istanbul"),"_blank");
+};
+$("delBtn").onclick=()=>{
+  const it=find(edit);
+  it.del=true; touch(it); commitState(); closeSheet(); render();
+  toast('"'+it.title+'" deleted',()=>{ it.del=false; touch(it); commitState(); render(); });
+};
+$("toastAct").onclick=()=>{ if(undoBuf) undoBuf(); $("toast").classList.remove("on"); };
+document.querySelectorAll(".chip").forEach(c=>{
+  c.onclick=()=>{ const base=toMin($("fTime").value);
+    $("fTime").value=toStr((base===null?nowMin():base)+(+c.dataset.shift)); };
+});
+$("sortBtn").onclick=()=>{
+  const list=visible(day(cur)).slice().sort((a,b)=>{
+    const x=toMin(a.time), y=toMin(b.time);
+    if(x===null&&y===null) return 0;
+    if(x===null) return 1; if(y===null) return -1; return x-y;
+  });
+  list.forEach((it,i)=>{ if(it.ord!==(i+1)*10){ it.ord=(i+1)*10; touch(it); } });
+  commitState(); render(); toast("Sorted by time.",null);
+};
+$("menuBtn").onclick=()=>{
+  if(confirm("Reset to the original itinerary?\nThis wipes it for everyone sharing the trip.")){
+    const fresh=JSON.parse(JSON.stringify(DEFAULT));
+    fresh.forEach(d=>d.items.forEach(it=>it.ts=now()));
+    state.days.forEach(d=>d.items.forEach(it=>{ it.del=true; touch(it); }));
+    fresh.forEach((fd,i)=>{ state.days[i].items=state.days[i].items.concat(fd.items); });
+    commitState(); render(); toast("Reset to the original plan.",null);
+  }
+};
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeSheet(); });
+
+/* ── 시작 ─────────────────────────────────────────────────── */
+(function boot(){
+  const saved=readLocal();
+  state=(saved&&Array.isArray(saved.days)&&saved.days.length)
+    ? saved : {days:JSON.parse(JSON.stringify(DEFAULT))};
+  const t=today(), i=state.days.findIndex(d=>d.date===t);
+  cur=i>=0?i:0;
+  render();
+  setInterval(()=>{ if(!$("sheet").classList.contains("on")) render(); },60000);
+})();
+</script>
+
+<!-- ── Firebase 동기화 (설정 없으면 조용히 건너뜀) ────────── -->
+<script type="module">
+const cfg = window.FIREBASE_CONFIG || {};
+if(!cfg.apiKey || !cfg.projectId){
+  window.__status("", "this device only");
+} else {
+  try{
+    const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+    const { getAuth, signInAnonymously, onAuthStateChanged } =
+      await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
+    const { initializeFirestore, persistentLocalCache, persistentSingleTabManager,
+            doc, setDoc, onSnapshot } =
+      await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+
+    const app = initializeApp(cfg);
+    const db = initializeFirestore(app, {
+      localCache: persistentLocalCache({ tabManager: persistentSingleTabManager() })
+    });
+    const ref = doc(db, "trips", window.TRIP_ID || "trip");
+
+    window.__status("off", "connecting");
+    await signInAnonymously(getAuth(app));
+
+    onAuthStateChanged(getAuth(app), u => {
+      if(!u) return;
+      onSnapshot(ref, { includeMetadataChanges: true }, snap => {
+        const pending = snap.metadata.hasPendingWrites;
+        const cached  = snap.metadata.fromCache;
+        window.__status(cached ? "off" : "live",
+                        cached ? "offline · saved here" : (pending ? "syncing" : "shared"));
+        const data = snap.data();
+        if(data && data.days) window.__onRemote(data.days);
+      }, err => {
+        console.warn(err);
+        window.__status("err", "sync error");
+      });
+    });
+
+    window.__push = async (days) => {
+      try{ await setDoc(ref, { days, updatedAt: Date.now() }, { merge: true }); }
+      catch(e){ console.warn(e); }
+    };
+
+    window.addEventListener("online",  ()=>window.__status("live","shared"));
+    window.addEventListener("offline", ()=>window.__status("off","offline · saved here"));
+  }catch(e){
+    console.warn("sync unavailable", e);
+    window.__status("err", "this device only");
+  }
+}
+</script>
+
+<script>
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+}
+</script>
+</body>
+</html>

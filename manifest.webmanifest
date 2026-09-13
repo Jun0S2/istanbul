@@ -1,0 +1,14 @@
+{
+  "name": "İstanbul · Sep 14–19",
+  "short_name": "İstanbul",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#12233D",
+  "theme_color": "#12233D",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
