@@ -269,6 +269,43 @@ const DEFAULT = [
  ]},
 ];
 
+/* 기본 일정은 모든 기기에서 같은 id를 갖는다 — 안 그러면 기기마다 중복 생성됨 */
+DEFAULT.forEach((d,di)=>d.items.forEach((it,ii)=>{ it.id = "s"+di+"-"+ii; }));
+
+/* 이미 생긴 중복 정리: 같은 날, 기본 일정과 같은 제목이 여러 개면 하나만 남긴다.
+   남길 항목은 모든 기기가 똑같이 고르도록 id 기준으로 결정하고,
+   체크 상태와 메모는 지워지는 쪽에서 살려서 옮긴다. */
+function dedupeSeeds(days){
+  let changed = false;
+  days.forEach((d,di)=>{
+    const seedTitles = new Set((DEFAULT[di] ? DEFAULT[di].items : []).map(x=>x.title));
+    const groups = new Map();
+    d.items.filter(it=>!it.del).forEach(it=>{
+      if(!seedTitles.has(it.title)) return;
+      if(!groups.has(it.title)) groups.set(it.title, []);
+      groups.get(it.title).push(it);
+    });
+    groups.forEach(list=>{
+      if(list.length < 2) return;
+      list.sort((a,b)=>{
+        const as = a.id.startsWith("s") ? 0 : 1, bs = b.id.startsWith("s") ? 0 : 1;
+        if(as !== bs) return as - bs;
+        return a.id < b.id ? -1 : 1;
+      });
+      const keep = list[0];
+      list.slice(1).forEach(it=>{
+        if(it.done) keep.done = true;
+        if(it.note && it.note.length > (keep.note||"").length) keep.note = it.note;
+        if(it.place && !keep.place) keep.place = it.place;
+        it.del = true; it.ts = now();
+        changed = true;
+      });
+      if(changed) keep.ts = now();
+    });
+  });
+  return changed;
+}
+
 let state=null, cur=0, edit=null, undoBuf=null, toastTimer=null, freshIds=new Set();
 
 /* ── 로컬 저장 (항상 동작) ───────────────────────────────── */
@@ -315,6 +352,7 @@ window.__onRemote = function(remoteDays){
   if(!remoteDays || !Array.isArray(remoteDays)) return;
   const before = JSON.stringify(state.days);
   state.days = prune(mergeDays(state.days, remoteDays));
+  if(dedupeSeeds(state.days)) commitState();
   if(JSON.stringify(state.days) !== before){
     writeLocal(); render();
     setTimeout(()=>{ freshIds.clear(); }, 1200);
@@ -497,6 +535,7 @@ document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeSheet(); });
     ? saved : {days:JSON.parse(JSON.stringify(DEFAULT))};
   const t=today(), i=state.days.findIndex(d=>d.date===t);
   cur=i>=0?i:0;
+  if(dedupeSeeds(state.days)) commitState();
   render();
   setInterval(()=>{ if(!$("sheet").classList.contains("on")) render(); },60000);
 })();
